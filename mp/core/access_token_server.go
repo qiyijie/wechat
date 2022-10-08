@@ -14,7 +14,7 @@ import (
 // access_token 中控服务器接口.
 type AccessTokenServer interface {
 	SetCache(c cache.Cache) (err error)
-	Token(isRefresh bool) (token string, err error)             // 请求中控服务器返回缓存的 access_token
+	Token() (token string, err error)                           // 请求中控服务器返回缓存的 access_token
 	RefreshToken(currentToken string) (token string, err error) // 请求中控服务器刷新 access_token
 }
 
@@ -63,20 +63,29 @@ func (srv *DefaultAccessTokenServer) SetCache(c cache.Cache) (err error) {
 	return
 }
 
-func (srv *DefaultAccessTokenServer) Token(isRefresh bool) (token string, err error) {
-	accessTokenCacheKey := fmt.Sprintf("wx:access:token:%s", srv.appId)
+func (srv *DefaultAccessTokenServer) Token() (token string, err error) {
+	accessTokenCacheKey := srv.getAccessTokenCacheKey()
 
-	if !isRefresh {
-		var data interface{}
-		err = srv.cache.Get(accessTokenCacheKey, &data)
-		if err == nil {
-			switch data.(type) {
-			case string:
-				token = data.(string)
-				return
-			}
+	var data interface{}
+	err = srv.cache.Get(accessTokenCacheKey, &data)
+	if err == nil {
+		switch data.(type) {
+		case string:
+			token = data.(string)
+			return
 		}
 	}
+
+	token, err = srv.getAccessTokenFromWxServer()
+	return
+}
+
+func (srv *DefaultAccessTokenServer) getAccessTokenCacheKey() string {
+	return fmt.Sprintf("wx:access:token:%s", srv.appId)
+}
+
+func (srv *DefaultAccessTokenServer) getAccessTokenFromWxServer() (token string, err error) {
+	accessTokenCacheKey := srv.getAccessTokenCacheKey()
 
 	//从微信服务器获取
 	var resAccessToken *accessToken
@@ -97,7 +106,8 @@ type refreshTokenResult struct {
 }
 
 func (srv *DefaultAccessTokenServer) RefreshToken(currentToken string) (token string, err error) {
-	return srv.Token(true)
+	token, err = srv.getAccessTokenFromWxServer()
+	return
 
 	// srv.refreshTokenRequestChan <- currentToken
 	// rslt := <-srv.refreshTokenResponseChan
