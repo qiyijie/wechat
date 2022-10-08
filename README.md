@@ -1,6 +1,9 @@
 # wechat SDK for golang
 https://github.com/chanxuehong/wechat
 
+# 修改
+把AccessToken改到redis中存储，防止不同服务器生成不同的token，相互覆盖，不断的请求token接口
+
 ## 简介
 | 模块  | 描述                     |
 |-----:|:-------------------------|
@@ -14,9 +17,6 @@ go get -u github.com/chanxuehong/wechat/...
 * [微信公众号 SDK 核心 package](/mp/core/README.md)
 * [基本的 api 调用](/mp/README.md)
 * [微信网页授权](/mp/oauth2/README.md)
-
-## 联系方式
-QQ群: 297489459
 
 ## 文档
 代码下载下来后，放入 GOPATH 路径的 src 下面，可以在shell(windows 下面是 cmd) 里运行
