@@ -13,6 +13,7 @@ import (
 
 // access_token 中控服务器接口.
 type AccessTokenServer interface {
+	SetCache(c cache.Cache) (err error)
 	Token() (token string, err error)                           // 请求中控服务器返回缓存的 access_token
 	RefreshToken(currentToken string) (token string, err error) // 请求中控服务器刷新 access_token
 }
