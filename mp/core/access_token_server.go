@@ -14,7 +14,7 @@ import (
 // access_token 中控服务器接口.
 type AccessTokenServer interface {
 	SetCache(c cache.Cache) (err error)
-	Token() (token string, err error)                           // 请求中控服务器返回缓存的 access_token
+	Token(isRefresh bool) (token string, err error)             // 请求中控服务器返回缓存的 access_token
 	RefreshToken(currentToken string) (token string, err error) // 请求中控服务器刷新 access_token
 }
 
@@ -63,15 +63,18 @@ func (srv *DefaultAccessTokenServer) SetCache(c cache.Cache) (err error) {
 	return
 }
 
-func (srv *DefaultAccessTokenServer) Token() (token string, err error) {
-	var data interface{}
+func (srv *DefaultAccessTokenServer) Token(isRefresh bool) (token string, err error) {
 	accessTokenCacheKey := fmt.Sprintf("wx:access:token:%s", srv.appId)
-	err = srv.cache.Get(accessTokenCacheKey, &data)
-	if err == nil {
-		switch data.(type) {
-		case string:
-			token = data.(string)
-			return
+
+	if !isRefresh {
+		var data interface{}
+		err = srv.cache.Get(accessTokenCacheKey, &data)
+		if err == nil {
+			switch data.(type) {
+			case string:
+				token = data.(string)
+				return
+			}
 		}
 	}
 
@@ -94,7 +97,7 @@ type refreshTokenResult struct {
 }
 
 func (srv *DefaultAccessTokenServer) RefreshToken(currentToken string) (token string, err error) {
-	return "", nil
+	return srv.Token(true)
 
 	// srv.refreshTokenRequestChan <- currentToken
 	// rslt := <-srv.refreshTokenResponseChan
