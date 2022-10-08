@@ -66,13 +66,15 @@ func (srv *DefaultAccessTokenServer) SetCache(c cache.Cache) (err error) {
 func (srv *DefaultAccessTokenServer) Token() (token string, err error) {
 	accessTokenCacheKey := srv.getAccessTokenCacheKey()
 
-	var data interface{}
-	err = srv.cache.Get(accessTokenCacheKey, &data)
-	if err == nil {
-		switch data.(type) {
-		case string:
-			token = data.(string)
-			return
+	if srv.cache != nil {
+		var data interface{}
+		err = srv.cache.Get(accessTokenCacheKey, &data)
+		if err == nil {
+			switch data.(type) {
+			case string:
+				token = data.(string)
+				return
+			}
 		}
 	}
 
@@ -93,8 +95,10 @@ func (srv *DefaultAccessTokenServer) getAccessTokenFromWxServer() (token string,
 	if err != nil {
 		return
 	}
-	expires := resAccessToken.ExpiresIn - 600
-	srv.cache.SetWithExpire(accessTokenCacheKey, resAccessToken.Token, time.Duration(expires)*time.Second)
+	if srv.cache != nil {
+		expires := resAccessToken.ExpiresIn - 600
+		srv.cache.SetWithExpire(accessTokenCacheKey, resAccessToken.Token, time.Duration(expires)*time.Second)
+	}
 
 	token = resAccessToken.Token
 	return
