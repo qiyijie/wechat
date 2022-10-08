@@ -55,6 +55,13 @@ func NewDefaultAccessTokenServer(appId, appSecret string, httpClient *http.Clien
 	return
 }
 
+func (srv *DefaultAccessTokenServer) SetCache(c cache.Cache) (err error) {
+	if srv.cache == nil && c != nil {
+		srv.cache = c
+	}
+	return
+}
+
 func (srv *DefaultAccessTokenServer) Token() (token string, err error) {
 	var data interface{}
 	accessTokenCacheKey := fmt.Sprintf("wx:access:token:%s", srv.appId)
